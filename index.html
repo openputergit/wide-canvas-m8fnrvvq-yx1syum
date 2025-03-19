@@ -1,0 +1,2757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Resume IQ - Smart Resume Analysis Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://js.stripe.com/v3/"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+        }
+        .pricing-card:hover {
+            transform: translateY(-5px);
+            transition: transform 0.3s ease;
+        }
+        .nav-link {
+            position: relative;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: #2563EB;
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        .active::after {
+            width: 100%;
+        }
+        #dropdownMenu {
+            transition: all 0.3s ease;
+            transform-origin: top center;
+        }
+        .dashboard-card {
+            transition: all 0.3s ease;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="#" class="text-xl font-bold text-blue-600">AI Resume IQ</a>
+                    <div class="hidden md:flex ml-10 space-x-8">
+                        <a href="#" class="nav-link active text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">Home</a>
+                        <a href="#product" class="nav-link text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">Product</a>
+                        <a href="#pricing" class="nav-link text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">Pricing</a>
+                        <a href="#about" class="nav-link text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">About Us</a>
+                        <a href="#contact" class="nav-link text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">Contact</a>
+                    </div>
+                </div>
+                <div class="hidden md:flex items-center space-x-4" id="authButtons">
+                    <button id="loginBtn" class="text-gray-600 hover:text-blue-600">Login</button>
+                    <button id="signupBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200">Sign Up</button>
+                </div>
+                <!-- Profile dropdown (initially hidden) -->
+                <div id="profileSection" class="hidden md:flex items-center">
+                    <div class="relative">
+                        <button id="profileBtn" class="flex items-center space-x-2 focus:outline-none">
+                            <div class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
+                                <span id="userInitials"></span>
+                            </div>
+                            <span class="text-gray-700" id="userName"></span>
+                            <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                        <div id="dropdownMenu" class="hidden absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                            <div class="py-1">
+                                <a href="#" id="dashboardLink" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Dashboard</a>
+                                <a href="#" id="profileLink" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Your Profile</a>
+                                <a href="#" id="settingsLink" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Account Settings</a>
+                                <a href="#" id="subscriptionLink" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Your Subscription</a>
+                                <a href="#" id="logoutBtn" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Logout</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Mobile menu button -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobileMenuBtn" class="text-gray-500 hover:text-blue-600">
+                        <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile menu -->
+        <div id="mobileMenu" class="hidden md:hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1">
+                <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-blue-600 bg-blue-50">Home</a>
+                <a href="#product" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50">Product</a>
+                <a href="#pricing" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50">Pricing</a>
+                <a href="#about" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50">About Us</a>
+                <a href="#contact" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50">Contact</a>
+                <div id="mobileAuthButtons" class="pt-4 pb-3 border-t border-gray-200">
+                    <button id="mobileLoginBtn" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-100">Login</button>
+                    <button id="mobileSignupBtn" class="mt-1 block w-full text-left px-3 py-2 rounded-md text-base font-medium text-white bg-blue-600 hover:bg-blue-700">Sign Up</button>
+                </div>
+                <div id="mobileProfileSection" class="hidden pt-4 pb-3 border-t border-gray-200">
+                    <div class="flex items-center px-3">
+                        <div class="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
+                            <span id="mobileUserInitials"></span>
+                        </div>
+                        <div class="ml-3">
+                            <div class="text-base font-medium text-gray-800" id="mobileUserName"></div>
+                            <div class="text-sm font-medium text-gray-500" id="mobileUserEmail"></div>
+                        </div>
+                    </div>
+                    <div class="mt-3 space-y-1">
+                        <a href="#" id="mobileDashboardLink" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-100">Dashboard</a>
+                        <a href="#" id="mobileProfileLink" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-100">Your Profile</a>
+                        <a href="#" id="mobileSettingsLink" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-100">Account Settings</a>
+                        <a href="#" id="mobileSubscriptionLink" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-100">Your Subscription</a>
+                        <a href="#" id="mobileLogoutBtn" class="block px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-gray-100">Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main content sections -->
+    <main id="mainContent">
+        <!-- Hero Section -->
+        <div class="gradient-bg py-16 md:py-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h1 class="text-3xl md:text-4xl font-bold text-white mb-6">
+                        AI-Powered Resume Analysis & Matching
+                    </h1>
+                    <p class="text-lg md:text-xl text-blue-100 mb-8">
+                        Transform your hiring process with advanced NLP and semantic matching
+                    </p>
+                    <div class="flex flex-col sm:flex-row justify-center gap-4">
+                        <button id="tryFreeBtn" class="bg-white px-6 py-3 rounded-lg cursor-pointer hover:bg-gray-50 transition duration-200 text-blue-600 font-medium">
+                            Try Free Trial
+                        </button>
+                        <div id="uploadSection" class="hidden">
+                            <label class="bg-white px-6 py-3 rounded-lg cursor-pointer hover:bg-gray-50 inline-block">
+                                <span class="text-blue-600">Upload Resumes</span>
+                                <input type="file" class="hidden" accept=".pdf,.docx" multiple>
+                            </label>
+                        </div>
+                    </div>
+                    <p class="text-blue-100 mt-4 text-sm">Free trial includes analysis of up to 30 resumes</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Features Section -->
+        <div id="product" class="py-16 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">How AI Resume IQ Works</h2>
+                    <p class="text-lg text-gray-600 max-w-3xl mx-auto">
+                        Our advanced system uses Natural Language Processing to analyze resumes and match them to job descriptions with unparalleled accuracy
+                    </p>
+                </div>
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="bg-blue-50 p-6 rounded-xl">
+                        <div class="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
+                            <i class="bi bi-file-earmark-text text-blue-600 text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">Resume Parsing</h3>
+                        <p class="text-gray-600">
+                            Upload multiple formats (.pdf, .docx) and our system automatically extracts key information with over 90% accuracy.
+                        </p>
+                    </div>
+                    <div class="bg-blue-50 p-6 rounded-xl">
+                        <div class="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
+                            <i class="bi bi-search text-blue-600 text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">Semantic Matching</h3>
+                        <p class="text-gray-600">
+                            Beyond keyword matching, our NLP algorithms understand context and rank candidates based on true relevance.
+                        </p>
+                    </div>
+                    <div class="bg-blue-50 p-6 rounded-xl">
+                        <div class="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center mb-4">
+                            <i class="bi bi-bar-chart-line text-blue-600 text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">Advanced Analytics</h3>
+                        <p class="text-gray-600">
+                            Get detailed insights about candidate pools, skill distribution, and qualification trends.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- How it Works Screenshots -->
+                <div class="mt-20">
+                    <h3 class="text-2xl font-bold text-center mb-12">See AI Resume IQ In Action</h3>
+                    <div class="grid md:grid-cols-3 gap-8">
+                        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                            <img src="https://images.unsplash.com/photo-1581291518633-83b4ebd1d83e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80" alt="Resume Upload Interface" class="w-full h-48 object-cover">
+                            <div class="p-5">
+                                <h4 class="font-semibold text-lg mb-2">1. Upload Resumes</h4>
+                                <p class="text-gray-600">Drag and drop multiple resumes in various formats for instant processing.</p>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                            <img src="https://images.unsplash.com/photo-1512758017271-d7b84c2113f1?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80" alt="AI Analysis Process" class="w-full h-48 object-cover">
+                            <div class="p-5">
+                                <h4 class="font-semibold text-lg mb-2">2. AI Analysis</h4>
+                                <p class="text-gray-600">Our NLP algorithms analyze and extract key information from each resume.</p>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                            <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80" alt="Results Dashboard" class="w-full h-48 object-cover">
+                            <div class="p-5">
+                                <h4 class="font-semibold text-lg mb-2">3. Get Ranked Results</h4>
+                                <p class="text-gray-600">Review a prioritized list of candidates with detailed match analysis.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pricing Section -->
+        <div id="pricing" class="py-16 bg-gray-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-center mb-4">Choose Your Plan</h2>
+                <p class="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
+                    Select a subscription that fits your hiring needs with flexible weekly plans and no long-term commitments
+                </p>
+                
+                <!-- Plan Toggle -->
+                <div class="flex justify-center mb-8">
+                    <div class="inline-flex items-center bg-gray-100 rounded-lg p-1">
+                        <button id="weeklyToggle" class="px-4 py-2 rounded-md bg-blue-600 text-white font-medium">Weekly</button>
+                        <button id="monthlyToggle" class="px-4 py-2 rounded-md text-gray-700 font-medium">Monthly</button>
+                        <button id="yearlyToggle" class="px-4 py-2 rounded-md text-gray-700 font-medium">Yearly</button>
+                    </div>
+                </div>
+                
+                <div class="grid md:grid-cols-3 gap-8">
+                    <!-- Starter Plan -->
+                    <div class="pricing-card bg-white p-8 rounded-xl shadow-lg border border-gray-200 transition duration-300">
+                        <div class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-medium inline-block mb-2">Most Popular</div>
+                        <h3 class="text-xl font-bold mb-4">Starter</h3>
+                        <div id="starterWeekly" class="block">
+                            <p class="text-3xl font-bold mb-4">$2<span class="text-sm font-normal text-gray-500">/week</span></p>
+                        </div>
+                        <div id="starterMonthly" class="hidden">
+                            <p class="text-3xl font-bold mb-4">$8<span class="text-sm font-normal text-gray-500">/month</span></p>
+                        </div>
+                        <div id="starterYearly" class="hidden">
+                            <p class="text-3xl font-bold mb-4">$80<span class="text-sm font-normal text-gray-500">/year</span></p>
+                            <p class="text-sm text-green-600 mb-4">Save $24 per year</p>
+                        </div>
+                        <ul class="mb-8 space-y-3">
+                            <li class="flex items-center"><i class="bi bi-check2 text-green-500 mr-2"></i>50 Resumes per week</li>
+                            <li class="flex items-center"><i class="bi bi-check2 text-green-500 mr-2"></i>Basic Analytics</li>
+                            <li class="flex items-center"><i class="bi bi-check2 text-green-500 mr-2"></i>Email Support</li>
+                            <li class="flex items-center"><i class="bi bi-check2 text-green-500 mr-2"></i>1 User Account</li>
+                            <li class="flex items-center"><i class="bi bi-x text-gray-400 mr-2"></i>AI Matching Score</li>
+                        </ul>
+                        <button class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition duration-200" onclick="handleSubscription('starter')">Select Plan</button>
+                    </div>
+
+                    <!-- Premium Plan -->
+                    <div class="pricing-card bg-white p-8 rounded-xl shadow-lg border border-gray-200 transition duration-300">
+                        <div class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-sm font-medium inline-block mb-2">Best Value</div>
+                        <h3 class="text-xl font-bold mb-4">Premium</h3>
+                        <div id="premiumWeekly" class="block">
+                            <p class="text-3xl font-bold mb-4">$5<span class="text-sm font-normal text-gray-500">/week</span></p>
+                        </div>
+                        <div id="premiumMonthly" class="hidden">
+                            <p class="text-3xl font-bold mb-4">$20<span class="text-sm font-normal text-gray-500">/month</span></p>
+                        </div>
+                        <div id="premiumYearly" class="hidden">
+                            <p class="text-3xl font-bold mb-4">$200<span class="text-sm font-normal text-gray-500">/year</span></p>
+                            <p class="text-sm text-green-600 mb-4">Save $60 per year</p>
+                        </div>
+                        <ul class="mb-8 space-y-3">
+                            <li class="flex items-center"><i class="bi bi-check2 text-green-500 mr-2"></i>100 Resumes per week</li>
+                            <li class="flex items-center"><i class="bi bi-check2 text-green-500 mr-2"></i>Advanced Analytics</li>
+                            <li class="flex items-center"><i class="bi bi-check2 text-green-500 mr-2"></i>Priority Support</li>
+                            <li class="flex items-center"><i class="bi bi-check2 text-green-500 mr-2"></i>3 User Accounts</li>
+                            <li class="flex items-center"><i class="bi bi-check2 text-green-500 mr-2"></i>AI Matching Score</li>
+                        </ul>
+                        <button class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition duration-200" onclick="handleSubscription('premium')">Select Plan</button>
+                    </div>
+
+                    <!-- Enterprise Plan -->
+                    <div class="pricing-card bg-white p-8 rounded-xl shadow-lg border border-gray-200 transition duration-300">
+                        <div class="bg-purple-100 text-purple-600 px-3 py-1 rounded-full text-sm font-medium inline-block mb-2">Enterprise</div>
+                        <h3 class="text-xl font-bold mb-4">Enterprise</h3>
+                        <div id="enterpriseWeekly" class="block">
+                            <p class="text-3xl font-bold mb-4">$8<span class="text-sm font-normal text-gray-500">/week</span></p>
+                        </div>
+                        <div id="enterpriseMonthly" class="hidden">
+                            <p class="text-3xl font-bold mb-4">$32<span class="text-sm font-normal text-gray-500">/month</span></p>
+                        </div>
+                        <div id="enterpriseYearly" class="hidden">
+                            <p class="text-3xl font-bold mb-4">$320<span class="text-sm font-normal text-gray-500">/year</span></p>
+                            <p class="text-sm text-green-600 mb-4">Save $96 per year</p>
+                        </div>
+                        <ul class="mb-8 space-y-3">
+                            <li class="flex items-center"><i class="bi bi-check2 text-green-500 mr-2"></i>500 Resumes per week</li>
+                            <li class="flex items-center"><i class="bi bi-check2 text-green-500 mr-2"></i>Custom Analytics</li>
+                            <li class="flex items-center"><i class="bi bi-check2 text-green-500 mr-2"></i>24/7 Support</li>
+                            <li class="flex items-center"><i class="bi bi-check2 text-green-500 mr-2"></i>Unlimited Users</li>
+                            <li class="flex items-center"><i class="bi bi-check2 text-green-500 mr-2"></i>Advanced AI Matching</li>
+                        </ul>
+                        <button class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition duration-200" onclick="handleSubscription('enterprise')">Select Plan</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- About Us Section -->
+        <div id="about" class="py-16 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">About AI Resume IQ</h2>
+                    <p class="text-lg text-gray-600 max-w-3xl mx-auto">
+                        We're revolutionizing the hiring process through cutting-edge AI and NLP technology
+                    </p>
+                </div>
+                <div class="grid md:grid-cols-2 gap-12 items-center">
+                    <div>
+                        <h3 class="text-2xl font-semibold mb-4">Our Mission</h3>
+                        <p class="text-gray-600 mb-6">
+                            AI Resume IQ was created to address the challenges recruiters face when screening large volumes of resumes. Traditional ATS systems rely on rigid keyword matching, which often misses qualified candidates whose resumes don't contain exact matching terms.
+                        </p>
+                        <p class="text-gray-600 mb-6">
+                            Our platform leverages advanced Natural Language Processing and semantic search technologies to understand the context of skills and experiences, providing a more accurate match between candidates and job requirements.
+                        </p>
+                        <div class="flex items-center space-x-4">
+                            <div class="flex flex-col">
+                                <span class="text-3xl font-bold text-blue-600">90%+</span>
+                                <span class="text-gray-500">Parsing Accuracy</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-3xl font-bold text-blue-600">50%</span>
+                                <span class="text-gray-500">Time Saved</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-3xl font-bold text-blue-600">3x</span>
+                                <span class="text-gray-500">Better Matches</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="rounded-xl overflow-hidden shadow-lg">
+                        <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="AI Resume Analysis" class="w-full h-auto">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Section -->
+        <div id="contact" class="py-16 bg-gray-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid md:grid-cols-2 gap-12">
+                    <div>
+                        <h2 class="text-3xl font-bold text-gray-900 mb-4">Get in Touch</h2>
+                        <p class="text-gray-600 mb-6">
+                            Have questions about AI Resume IQ? Our team is here to help you transform your hiring process.
+                        </p>
+                        <div class="space-y-4">
+                            <div class="flex items-center">
+                                <i class="bi bi-envelope text-blue-600 text-xl mr-4"></i>
+                                <span>support@airesumeiq.com</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="bi bi-telephone text-blue-600 text-xl mr-4"></i>
+                                <span>+1 (800) 123-4567</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="bi bi-geo-alt text-blue-600 text-xl mr-4"></i>
+                                <span>123 Innovation Way, San Francisco, CA 94107</span>
+                            </div>
+                        </div>
+                        <div class="mt-6 flex space-x-4">
+                            <a href="#" class="text-gray-400 hover:text-blue-600"><i class="bi bi-linkedin text-2xl"></i></a>
+                            <a href="#" class="text-gray-400 hover:text-blue-600"><i class="bi bi-twitter text-2xl"></i></a>
+                            <a href="#" class="text-gray-400 hover:text-blue-600"><i class="bi bi-facebook text-2xl"></i></a>
+                        </div>
+                    </div>
+                    <div>
+                        <form class="bg-white p-6 rounded-xl shadow-md">
+                            <div class="mb-4">
+                                <label for="name" class="block text-gray-700 mb-2">Name</label>
+                                <input type="text" id="name" class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 outline-none">
+                            </div>
+                            <div class="mb-4">
+                                <label for="email" class="block text-gray-700 mb-2">Email</label>
+                                <input type="email" id="email" class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 outline-none">
+                            </div>
+                            <div class="mb-4">
+                                <label for="message" class="block text-gray-700 mb-2">Message</label>
+                                <textarea id="message" rows="4" class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 outline-none"></textarea>
+                            </div>
+                            <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition duration-200">Send Message</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Dashboard Section (initially hidden) -->
+    <div id="dashboardContent" class="hidden">
+        <!-- Dashboard Hero Section -->
+        <div class="bg-blue-50 py-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid md:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">Welcome to Your Dashboard</h1>
+                        <p class="text-gray-600 mb-6">
+                            Upload resumes, view analytics, and track your subscription status all in one place.
+                        </p>
+                        <div id="subscriptionInfo" class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-sm text-gray-500">Current Plan</p>
+                                    <p class="text-lg font-semibold" id="currentPlan">Free Trial</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500">Remaining Credits</p>
+                                    <p class="text-lg font-semibold" id="remainingCredits">30 resumes</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500">Expires On</p>
+                                    <p class="text-lg font-semibold" id="expiryDate">-</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex justify-center md:justify-end">
+                        <label for="resumeUpload" class="flex items-center justify-center bg-blue-600 text-white px-6 py-3 rounded-lg cursor-pointer hover:bg-blue-700 transition duration-200">
+                            <i class="bi bi-upload mr-2"></i> Upload Resumes
+                            <input type="file" id="resumeUpload" class="hidden" accept=".pdf,.docx" multiple>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Main Content -->
+        <div class="py-10">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <!-- Statistics Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                        <div class="flex items-center">
+                            <div class="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center mr-4">
+                                <i class="bi bi-file-earmark-text text-blue-600 text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Processed Resumes</p>
+                                <p class="text-2xl font-semibold" id="processedResumesCount">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                        <div class="flex items-center">
+                            <div class="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center mr-4">
+                                <i class="bi bi-check-circle text-green-600 text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Matched Candidates</p>
+                                <p class="text-2xl font-semibold" id="matchedCandidatesCount">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                        <div class="flex items-center">
+                            <div class="h-12 w-12 rounded-full bg-yellow-100 flex items-center justify-center mr-4">
+                                <i class="bi bi-lightning-charge text-yellow-600 text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Processing Speed</p>
+                                <p class="text-2xl font-semibold">2.4s</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                        <div class="flex items-center">
+                            <div class="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center mr-4">
+                                <i class="bi bi-graph-up text-purple-600 text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Accuracy Score</p>
+                                <p class="text-2xl font-semibold">92%</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Job Description Input -->
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
+                    <h3 class="text-lg font-semibold mb-4">Match Resumes to Job Description</h3>
+                    <div class="mb-4">
+                        <label for="jobTitle" class="block text-gray-700 mb-2">Job Title</label>
+                        <input type="text" id="jobTitle" class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 outline-none" placeholder="e.g. Senior Software Engineer">
+                    </div>
+                    <div class="mb-4">
+                        <label for="jobDescription" class="block text-gray-700 mb-2">Job Description</label>
+                        <textarea id="jobDescription" rows="4" class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 outline-none" placeholder="Paste your job description here..."></textarea>
+                    </div>
+                    <div class="flex justify-end">
+                        <button id="matchResumesBtn" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-200">
+                            Match Resumes
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
+                    <h3 class="text-lg font-semibold mb-4">Recent Activity</h3>
+                    <div id="noActivityMessage" class="py-8 text-center">
+                        <i class="bi bi-inbox text-gray-300 text-4xl mb-3 block"></i>
+                        <p class="text-gray-500">No activities yet. Upload resumes to get started!</p>
+                    </div>
+                    <div id="activityList" class="hidden">
+                        <!-- Activity items will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Matched Candidates (initially hidden) -->
+                <div id="matchedCandidates" class="hidden bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
+                    <h3 class="text-lg font-semibold mb-4">Matched Candidates</h3>
+                    <div id="candidatesList">
+                        <!-- Candidate items will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="dashboard-card bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <div class="h-14 w-14 rounded-full bg-blue-100 flex items-center justify-center mb-4">
+                            <i class="bi bi-file-earmark-plus text-blue-600 text-2xl"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold mb-2">Create Job Description</h3>
+                        <p class="text-gray-600 mb-4">Create a new job description to match with candidate resumes</p>
+                        <button class="text-blue-600 font-semibold flex items-center" id="createJobBtn">
+                            Get Started <i class="bi bi-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                    <div class="dashboard-card bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <div class="h-14 w-14 rounded-full bg-green-100 flex items-center justify-center mb-4">
+                            <i class="bi bi-people text-green-600 text-2xl"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold mb-2">View Candidate Pool</h3>
+                        <p class="text-gray-600 mb-4">Browse all candidates with detailed skill analysis</p>
+                        <button class="text-blue-600 font-semibold flex items-center" id="viewCandidatesBtn">
+                            View Candidates <i class="bi bi-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                    <div class="dashboard-card bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <div class="h-14 w-14 rounded-full bg-purple-100 flex items-center justify-center mb-4">
+                            <i class="bi bi-bar-chart text-purple-600 text-2xl"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold mb-2">Analytics & Reports</h3>
+                        <p class="text-gray-600 mb-4">View detailed analytics about your candidate pool</p>
+                        <button class="text-blue-600 font-semibold flex items-center" id="viewAnalyticsBtn">
+                            View Analytics <i class="bi bi-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Analytics Section (initially hidden) -->
+        <div id="analyticsSection" class="hidden py-10 bg-gray-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-2">Analytics & Reports</h2>
+                    <p class="text-gray-600">Gain insights into your candidate pool and resume data</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Skills Distribution Chart -->
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <h3 class="text-lg font-semibold mb-4">Top Skills Distribution</h3>
+                        <div class="h-80 bg-gray-50 rounded flex items-center justify-center" id="skillsChart">
+                            <div class="text-center">
+                                <i class="bi bi-bar-chart text-gray-300 text-4xl mb-3 block"></i>
+                                <p class="text-gray-500">Upload resumes to see skills distribution</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Experience Levels Chart -->
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <h3 class="text-lg font-semibold mb-4">Experience Levels</h3>
+                        <div class="h-80 bg-gray-50 rounded flex items-center justify-center" id="experienceChart">
+                            <div class="text-center">
+                                <i class="bi bi-pie-chart text-gray-300 text-4xl mb-3 block"></i>
+                                <p class="text-gray-500">Upload resumes to see experience distribution</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mt-8">
+                    <h3 class="text-lg font-semibold mb-4">Resume Quality Analysis</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead>
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resume ID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Candidate Name</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Format Quality</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Content Quality</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Overall Score</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200" id="qualityTable">
+                                <tr>
+                                    <td colspan="5" class="px-6 py-12 text-center">
+                                        <p class="text-gray-500">Upload resumes to view quality analysis</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <button class="mt-8 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200" id="backToDashboardBtn">
+                    Back to Dashboard
+                </button>
+            </div>
+        </div>
+        
+        <!-- Candidate Pool Section (initially hidden) -->
+        <div id="candidatePoolSection" class="hidden py-10 bg-gray-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-2">Candidate Pool</h2>
+                    <p class="text-gray-600">Browse and search through all the resumes you've uploaded</p>
+                </div>
+                
+                <div class="mb-6 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <div class="flex-1">
+                            <input type="text" id="candidateSearch" placeholder="Search by name, skills or experience" class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 outline-none">
+                        </div>
+                        <div class="flex-none">
+                            <select id="candidateFilter" class="px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 outline-none">
+                                <option value="all">All Candidates</option>
+                                <option value="recent">Recently Added</option>
+                                <option value="highest">Highest Rated</option>
+                                <option value="experience">Most Experienced</option>
+                            </select>
+                        </div>
+                        <div class="flex-none">
+                            <button id="searchCandidatesBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200">
+                                Search
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="candidatePoolEmpty" class="py-16 text-center bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                    <i class="bi bi-people text-gray-300 text-5xl mb-4 block"></i>
+                    <h3 class="text-xl font-semibold mb-2">No candidates yet</h3>
+                    <p class="text-gray-500 mb-6">Upload resumes to start building your candidate pool</p>
+                    <label for="candidatePoolUpload" class="bg-blue-600 text-white px-6 py-3 rounded-lg cursor-pointer hover:bg-blue-700 transition duration-200">
+                        <i class="bi bi-upload mr-2"></i> Upload Resumes
+                        <input type="file" id="candidatePoolUpload" class="hidden" accept=".pdf,.docx" multiple>
+                    </label>
+                </div>
+                
+                <div id="candidatePoolGrid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Candidate cards will be populated here -->
+                </div>
+                
+                <button class="mt-8 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200" id="backFromPoolBtn">
+                    Back to Dashboard
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Profile Section (initially hidden) -->
+    <div id="profileContent" class="hidden py-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="mb-8">
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">Your Profile</h1>
+                <p class="text-gray-600">Manage your personal information and account preferences</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="md:col-span-1">
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <div class="flex flex-col items-center">
+                            <div class="h-24 w-24 rounded-full bg-blue-500 flex items-center justify-center text-white text-3xl font-semibold mb-4" id="profileInitials">
+                            </div>
+                            <h3 class="text-xl font-semibold mb-1" id="profileName"></h3>
+                            <p class="text-gray-500 mb-4" id="profileEmail"></p>
+                            <button class="text-blue-600 text-sm">Change profile picture</button>
+                        </div>
+                        <div class="mt-6 pt-6 border-t border-gray-100">
+                            <h4 class="font-medium mb-3">Account Information</h4>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-gray-500">Plan</span>
+                                <span class="font-medium" id="profilePlan">Free Trial</span>
+                            </div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-gray-500">Member since</span>
+                                <span class="font-medium" id="memberSince">November 2023</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="md:col-span-2">
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <h3 class="text-lg font-semibold mb-4">Personal Information</h3>
+                        <form id="profileForm">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <label for="firstName" class="block text-gray-700 mb-2">First Name</label>
+                                    <input type="text" id="firstName" class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 outline-none">
+                                </div>
+                                <div>
+                                    <label for="lastName" class="block text-gray-700 mb-2">Last Name</label>
+                                    <input type="text" id="lastName" class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 outline-none">
+                                </div>
+                                <div>
+                                    <label for="profileEmailInput" class="block text-gray-700 mb-2">Email</label>
+                                    <input type="email" id="profileEmailInput" class="w-full px-4 py-2 border rounded-lg bg-gray-50" readonly>
+                                </div>
+                                <div>
+                                    <label for="phoneNumber" class="block text-gray-700 mb-2">Phone Number</label>
+                                    <input type="tel" id="phoneNumber" class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 outline-none">
+                                </div>
+                            </div>
+                            <div class="mb-6">
+                                <label for="companyName" class="block text-gray-700 mb-2">Company Name</label>
+                                <input type="text" id="companyName" class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 outline-none">
+                            </div>
+                            <div class="mb-6">
+                                <label for="jobTitle" class="block text-gray-700 mb-2">Job Title</label>
+                                <input type="text" id="jobTitle" class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 outline-none">
+                            </div>
+                            <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-200">Save Changes</button>
+                            <div id="profileUpdateSuccess" class="hidden mt-3 p-2 bg-green-100 text-green-600 rounded">
+                                Profile updated successfully!
+                            </div>
+                        </form>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mt-6">
+                        <h3 class="text-lg font-semibold mb-4">Change Password</h3>
+                        <form id="passwordForm">
+                            <div class="mb-4">
+                                <label for="currentPassword" class="block text-gray-700 mb-2">Current Password</label>
+                                <input type="password" id="currentPassword" class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 outline-none">
+                            </div>
+                            <div class="mb-4">
+                                <label for="newPassword" class="block text-gray-700 mb-2">New Password</label>
+                                <input type="password" id="newPassword" class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 outline-none">
+                            </div>
+                            <div class="mb-6">
+                                <label for="confirmPassword" class="block text-gray-700 mb-2">Confirm Password</label>
+                                <input type="password" id="confirmPassword" class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 outline-none">
+                            </div>
+                            <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-200">Update Password</button>
+                            <div id="passwordUpdateError" class="hidden mt-3 p-2 bg-red-100 text-red-600 rounded">
+                                Passwords don't match or invalid current password.
+                            </div>
+                            <div id="passwordUpdateSuccess" class="hidden mt-3 p-2 bg-green-100 text-green-600 rounded">
+                                Password updated successfully!
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Account Settings Section (initially hidden) -->
+    <div id="settingsContent" class="hidden py-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="mb-8">
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">Account Settings</h1>
+                <p class="text-gray-600">Manage your account preferences and notification settings</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="md:col-span-1">
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 sticky top-24">
+                        <h3 class="font-semibold mb-4">Settings</h3>
+                        <nav class="space-y-2">
+                            <a href="#notifications" class="block px-3 py-2 rounded-md bg-blue-50 text-blue-600 font-medium">Notifications</a>
+                            <a href="#security" class="block px-3 py-2 rounded-md text-gray-700 hover:bg-gray-50">Security</a>
+                            <a href="#billing" class="block px-3 py-2 rounded-md text-gray-700 hover:bg-gray-50">Billing & Payment</a>
+                            <a href="#api" class="block px-3 py-2 rounded-md text-gray-700 hover:bg-gray-50">API Access</a>
+                            <a href="#data" class="block px-3 py-2 rounded-md text-gray-700 hover:bg-gray-50">Data Management</a>
+                        </nav>
+                    </div>
+                </div>
+                <div class="md:col-span-2">
+                    <div id="notifications" class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
+                        <h3 class="text-lg font-semibold mb-4">Notification Preferences</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="font-medium">Email Notifications</h4>
+                                    <p class="text-sm text-gray-500">Receive updates about your account and features</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" checked class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="font-medium">Weekly Summary</h4>
+                                    <p class="text-sm text-gray-500">Receive a weekly summary of your activities</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="font-medium">Product Updates</h4>
+                                    <p class="text-sm text-gray-500">Receive notifications about new features and updates</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" checked class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+                            <div class="pt-4 mt-4 border-t border-gray-100">
+                                <button id="saveNotificationSettings" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200">
+                                    Save Settings
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="security" class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
+                        <h3 class="text-lg font-semibold mb-4">Security Settings</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="font-medium">Two-Factor Authentication</h4>
+                                    <p class="text-sm text-gray-500">Add an extra layer of security to your account</p>
+                                </div>
+                                <button class="bg-blue-600 text-white px-4 py-2 text-sm rounded-lg hover:bg-blue-700 transition duration-200">Enable</button>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="font-medium">Login History</h4>
+                                    <p class="text-sm text-gray-500">View your recent login activities</p>
+                                </div>
+                                <button class="text-blue-600 hover:text-blue-800 font-medium">View History</button>
+                            </div>
+                            <div class="pt-4 mt-4 border-t border-gray-100">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h4 class="font-medium">Delete Account</h4>
+                                        <p class="text-sm text-gray-500">Permanently delete your account and all data</p>
+                                    </div>
+                                    <button class="text-red-600 hover:text-red-800 font-medium">Delete Account</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Subscription Section (initially hidden) -->
+    <div id="subscriptionContent" class="hidden py-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="mb-8">
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">Your Subscription</h1>
+                <p class="text-gray-600">Manage your plan and subscription details</p>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
+                <div class="flex flex-col md:flex-row md:justify-between md:items-center">
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Current Plan</p>
+                        <h3 id="subscriptionPlanName" class="text-xl font-bold mb-1">Free Trial</h3>
+                        <p id="subscriptionDescription" class="text-gray-600 mb-4 md:mb-0">Your free trial includes analysis of up to 30 resumes.</p>
+                    </div>
+                    <div class="flex flex-col items-start md:items-end">
+                        <div class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium inline-block mb-2">
+                            <span id="subscriptionStatus">Active</span>
+                        </div>
+                        <div id="subscriptionPrice" class="text-2xl font-bold mb-2">$0</div>
+                        <div id="subscriptionPeriod" class="text-gray-500 text-sm mb-4">Free Trial</div>
+                        <button id="upgradePlanBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200">Upgrade Plan</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-8">
+                <h3 class="text-lg font-semibold mb-4">Usage Statistics</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Resume Credits</p>
+                        <div class="flex items-end mb-2">
+                            <span id="usedCredits" class="text-2xl font-bold mr-2">0</span>
+                            <span id="totalCredits" class="text-gray-500">/ 30 used</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div id="creditsProgressBar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Time Remaining</p>
+                        <div class="flex items-end mb-2">
+                            <span id="daysRemaining" class="text-2xl font-bold mr-2">14</span>
+                            <span class="text-gray-500">days</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div id="daysProgressBar" class="bg-green-500 h-2.5 rounded-full" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Features</p>
+                        <ul class="space-y-2 mt-2">
+                            <li class="flex items-center text-sm">
+                                <i class="bi bi-check-circle-fill text-green-500 mr-2"></i>
+                                <span>Basic Resume Parsing</span>
+                            </li>
+                            <li class="flex items-center text-sm">
+                                <i class="bi bi-check-circle-fill text-green-500 mr-2"></i>
+                                <span>Email Support</span>
+                            </li>
+                            <li class="flex items-center text-sm text-gray-400">
+                                <i class="bi bi-x-circle-fill text-gray-300 mr-2"></i>
+                                <span>AI Matching Score</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                <h3 class="text-lg font-semibold mb-4">Billing History</h3>
+                <div id="noBillingMessage" class="py-8 text-center">
+                    <i class="bi bi-receipt text-gray-300 text-4xl mb-3 block"></i>
+                    <p class="text-gray-500">No billing history available yet.</p>
+                </div>
+                <div id="billingHistory" class="hidden">
+                    <!-- Billing history items will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">AI Resume IQ</h3>
+                    <p class="text-gray-400">
+                        Transforming the hiring process with AI-powered resume analysis and matching.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="text-lg font-medium mb-4">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white">Home</a></li>
+                        <li><a href="#product" class="text-gray-400 hover:text-white">Product</a></li>
+                        <li><a href="#pricing" class="text-gray-400 hover:text-white">Pricing</a></li>
+                        <li><a href="#about" class="text-gray-400 hover:text-white">About</a></li>
+                        <li><a href="#contact" class="text-gray-400 hover:text-white">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-medium mb-4">Legal</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white">Privacy Policy</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Terms of Service</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Cookie Policy</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">GDPR Compliance</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-lg font-medium mb-4">Newsletter</h4>
+                    <p class="text-gray-400 mb-4">Stay updated with the latest features and releases.</p>
+                    <div class="flex">
+                        <input type="email" placeholder="Your email" class="px-4 py-2 rounded-l-lg w-full">
+                        <button class="bg-blue-600 px-4 py-2 rounded-r-lg">
+                            <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-12 pt-8 border-t border-gray-800 text-center text-gray-400">
+                <p>© 2024 AI Resume IQ. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="flex flex-col items-center">
+                <h3 class="text-xl font-bold mb-4">Login to AI Resume IQ</h3>
+                <button id="googleLoginBtn" class="w-full mb-4 flex items-center justify-center bg-white border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-50 transition duration-200">
+                    <img src="https://www.google.com/favicon.ico" class="w-5 h-5 mr-2" alt="Google">
+                    Continue with Google
+                </button>
+                <div class="w-full mb-4">
+                    <input type="email" id="loginEmail" placeholder="Email" class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 outline-none">
+                </div>
+                <div class="w-full mb-4">
+                    <input type="password" id="loginPassword" placeholder="Password" class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 outline-none">
+                </div>
+                <div id="loginError" class="w-full mb-4 text-red-500 text-sm hidden"></div>
+                <button id="loginSubmitBtn" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition duration-200">Login</button>
+                <div class="mt-4 text-sm">
+                    <span class="text-gray-600">Don't have an account?</span>
+                    <button id="switchToSignup" class="text-blue-600 hover:underline ml-1">Sign up</button>
+                </div>
+                <button class="mt-4 text-gray-600" onclick="closeModal('loginModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Signup Modal -->
+    <div id="signupModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="flex flex-col items-center">
+                <h3 class="text-xl font-bold mb-4">Create an Account</h3>
+                <button id="googleSignupBtn" class="w-full mb-4 flex items-center justify-center bg-white border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-50 transition duration-200">
+                    <img src="https://www.google.com/favicon.ico" class="w-5 h-5 mr-2" alt="Google">
+                    Sign up with Google
+                </button>
+                <div class="w-full mb-4">
+                    <input type="text" id="signupName" placeholder="Full Name" class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 outline-none">
+                </div>
+                <div class="w-full mb-4">
+                    <input type="email" id="signupEmail" placeholder="Email" class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 outline-none">
+                </div>
+                <div class="w-full mb-4">
+                    <input type="password" id="signupPassword" placeholder="Password" class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 outline-none">
+                </div>
+                <div class="w-full mb-4">
+                    <input type="password" id="signupConfirmPassword" placeholder="Confirm Password" class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 outline-none">
+                </div>
+                <div id="signupError" class="w-full mb-4 text-red-500 text-sm hidden"></div>
+                <button id="signupSubmitBtn" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition duration-200">Create Account</button>
+                <div class="mt-4 text-sm">
+                    <span class="text-gray-600">Already have an account?</span>
+                    <button id="switchToLogin" class="text-blue-600 hover:underline ml-1">Login</button>
+                </div>
+                <button class="mt-4 text-gray-600" onclick="closeModal('signupModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Free Trial Modal -->
+    <div id="freeTrialModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="flex flex-col items-center">
+                <h3 class="text-xl font-bold mb-4">Start Your Free Trial</h3>
+                <p class="text-gray-600 mb-6 text-center">Get started with AI Resume IQ by analyzing up to 30 resumes for free.</p>
+                <div class="w-full mb-4">
+                    <input type="text" id="trialName" placeholder="Full Name" class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 outline-none">
+                </div>
+                <div class="w-full mb-4">
+                    <input type="email" id="trialEmail" placeholder="Email" class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 outline-none">
+                </div>
+                <div class="w-full mb-4">
+                    <input type="password" id="trialPassword" placeholder="Password" class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 outline-none">
+                </div>
+                <div id="trialError" class="w-full mb-4 text-red-500 text-sm hidden"></div>
+                <button id="startTrialBtn" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition duration-200">Start Free Trial</button>
+                <button class="mt-4 text-gray-600" onclick="closeModal('freeTrialModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="flex flex-col items-center">
+                <h3 class="text-xl font-bold mb-4">Payment Details</h3>
+                <p id="planDetails" class="text-gray-600 mb-6 text-center">You are subscribing to the Starter Plan at $2/week.</p>
+                <div class="w-full mb-4">
+                    <label for="cardName" class="block text-gray-700 mb-2">Name on Card</label>
+                    <input type="text" id="cardName" class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 outline-none">
+                </div>
+                <div class="w-full mb-4">
+                    <label for="cardNumber" class="block text-gray-700 mb-2">Card Number</label>
+                    <div id="card-element" class="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 focus:border-blue-500 outline-none bg-white">
+                        <!-- Stripe Elements will be inserted here -->
+                    </div>
+                    <div id="card-errors" class="text-red-500 text-sm mt-1"></div>
+                </div>
+                
+                <!-- Billing Frequency Selection -->
+                <div class="w-full mb-4">
+                    <label class="block text-gray-700 mb-2">Billing Frequency</label>
+                    <div class="flex space-x-2">
+                        <label class="flex items-center bg-gray-100 px-3 py-2 rounded-lg cursor-pointer">
+                            <input type="radio" name="billingCycle" value="weekly" checked class="mr-2">
+                            <span>Weekly</span>
+                        </label>
+                        <label class="flex items-center bg-gray-100 px-3 py-2 rounded-lg cursor-pointer">
+                            <input type="radio" name="billingCycle" value="monthly" class="mr-2">
+                            <span>Monthly</span>
+                        </label>
+                        <label class="flex items-center bg-gray-100 px-3 py-2 rounded-lg cursor-pointer">
+                            <input type="radio" name="billingCycle" value="yearly" class="mr-2">
+                            <span>Yearly</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <button id="completePaymentBtn" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition duration-200">Complete Payment</button>
+                <button class="mt-4 text-gray-600" onclick="closeModal('paymentModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upgrade Plan Modal -->
+    <div id="upgradePlanModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-full max-w-3xl shadow-lg rounded-md bg-white">
+            <div class="flex flex-col items-center">
+                <h3 class="text-xl font-bold mb-4">Upgrade Your Plan</h3>
+                <p class="text-gray-600 mb-6 text-center">Choose a plan that better fits your needs</p>
+                
+                <!-- Plan Toggle -->
+                <div class="flex justify-center mb-8">
+                    <div class="inline-flex items-center bg-gray-100 rounded-lg p-1">
+                        <button id="upgradeWeeklyToggle" class="px-4 py-2 rounded-md bg-blue-600 text-white font-medium">Weekly</button>
+                        <button id="upgradeMonthlyToggle" class="px-4 py-2 rounded-md text-gray-700 font-medium">Monthly</button>
+                        <button id="upgradeYearlyToggle" class="px-4 py-2 rounded-md text-gray-700 font-medium">Yearly</button>
+                    </div>
+                </div>
+                
+                <div class="grid md:grid-cols-3 gap-6 w-full mb-8">
+                    <!-- Starter Plan -->
+                    <div class="bg-white p-6 rounded-lg border border-gray-200 hover:border-blue-400 hover:shadow-md transition-all duration-200">
+                        <div class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-medium inline-block mb-2">Starter</div>
+                        <div id="upgradeStarterWeekly" class="block">
+                            <p class="text-2xl font-bold mb-4">$2<span class="text-sm font-normal text-gray-500">/week</span></p>
+                        </div>
+                        <div id="upgradeStarterMonthly" class="hidden">
+                            <p class="text-2xl font-bold mb-4">$8<span class="text-sm font-normal text-gray-500">/month</span></p>
+                        </div>
+                        <div id="upgradeStarterYearly" class="hidden">
+                            <p class="text-2xl font-bold mb-4">$80<span class="text-sm font-normal text-gray-500">/year</span></p>
+                            <p class="text-sm text-green-600 mb-4">Save $24 per year</p>
+                        </div>
+                        <ul class="mb-6 space-y-2 text-sm">
+                            <li class="flex items-center"><i class="bi bi-check2 text-green-500 mr-2"></i>50 Resumes per week</li>
+                            <li class="flex items-center"><i class="bi bi-check2 text-green-500 mr-2"></i>Basic Analytics</li>
+                            <li class="flex items-center"><i class="bi bi-check2 text-green-500 mr-2"></i>Email Support</li>
+                            <li class="flex items-center"><i class="bi bi-check2 text-green-500 mr-2"></i>1 User Account</li>
+                        </ul>
+                        <button class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition duration-200 text-sm" onclick="selectUpgradePlan('starter')">Select Plan</button>
+                    </div>
+
+                    <!-- Premium Plan -->
+                    <div class="bg-white p-6 rounded-lg border-2 border-blue-500 shadow-md relative">
+                        <span class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-bold">RECOMMENDED</span>
+                        <div class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-sm font-medium inline-block mb-2">Premium</div>
+                        <div id="upgradePremiumWeekly" class="block">
+                            <p class="text-2xl font-bold mb-4">$5<span class="text-sm font-normal text-gray-500">/week</span></p>
+                        </div>
+                        <div id="upgradePremiumMonthly" class="hidden">
+                            <p class="text-2xl font-bold mb-4">$20<span class="text-sm font-normal text-gray-500">/month</span></p>
+                        </div>
+                        <div id="upgradePremiumYearly" class="hidden">
+                            <p class="text-2xl font-bold mb-4">$200<span class="text-sm font-normal text-gray-500">/year</span></p>
+                            <p class="text-sm text-green-600 mb-4">Save $60 per year</p>
+                        </div>
+                        <ul class="mb-6 space-y-2 text-sm">
+                            <li class="flex items-center"><i class="bi bi-check2 text-green-500 mr-2"></i>100 Resumes per week</li>
+                            <li class="flex items-center"><i class="bi bi-check2 text-green-500 mr-2"></i>Advanced Analytics</li>
+                            <li class="flex items-center"><i class="bi bi-check2 text-green-500 mr-2"></i>Priority Support</li>
+                            <li class="flex items-center"><i class="bi bi-check2 text-green-500 mr-2"></i>3 User Accounts</li>
+                            <li class="flex items-center"><i class="bi bi-check2 text-green-500 mr-2"></i>AI Matching Score</li>
+                        </ul>
+                        <button class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition duration-200 text-sm" onclick="selectUpgradePlan('premium')">Select Plan</button>
+                    </div>
+
+                    <!-- Enterprise Plan -->
+                    <div class="bg-white p-6 rounded-lg border border-gray-200 hover:border-blue-400 hover:shadow-md transition-all duration-200">
+                        <div class="bg-purple-100 text-purple-600 px-3 py-1 rounded-full text-sm font-medium inline-block mb-2">Enterprise</div>
+                        <div id="upgradeEnterpriseWeekly" class="block">
+                            <p class="text-2xl font-bold mb-4">$8<span class="text-sm font-normal text-gray-500">/week</span></p>
+                        </div>
+                        <div id="upgradeEnterpriseMonthly" class="hidden">
+                            <p class="text-2xl font-bold mb-4">$32<span class="text-sm font-normal text-gray-500">/month</span></p>
+                        </div>
+                        <div id="upgradeEnterpriseYearly" class="hidden">
+                            <p class="text-2xl font-bold mb-4">$320<span class="text-sm font-normal text-gray-500">/year</span></p>
+                            <p class="text-sm text-green-600 mb-4">Save $96 per year</p>
+                        </div>
+                        <ul class="mb-6 space-y-2 text-sm">
+                            <li class="flex items-center"><i class="bi bi-check2 text-green-500 mr-2"></i>500 Resumes per week</li>
+                            <li class="flex items-center"><i class="bi bi-check2 text-green-500 mr-2"></i>Custom Analytics</li>
+                            <li class="flex items-center"><i class="bi bi-check2 text-green-500 mr-2"></i>24/7 Support</li>
+                            <li class="flex items-center"><i class="bi bi-check2 text-green-500 mr-2"></i>Unlimited Users</li>
+                            <li class="flex items-center"><i class="bi bi-check2 text-green-500 mr-2"></i>Advanced AI Matching</li>
+                        </ul>
+                        <button class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition duration-200 text-sm" onclick="selectUpgradePlan('enterprise')">Select Plan</button>
+                    </div>
+                </div>
+                <button class="text-gray-600" onclick="closeModal('upgradePlanModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Limit Reached Modal -->
+    <div id="limitReachedModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="flex flex-col items-center">
+                <div class="bg-yellow-100 rounded-full p-3 mb-4">
+                    <i class="bi bi-exclamation-triangle text-yellow-500 text-3xl"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2">Resume Limit Reached</h3>
+                <p class="text-gray-600 mb-6 text-center">You've reached your plan's resume limit. Upgrade your plan to analyze more resumes.</p>
+                <button id="upgradeLimitBtn" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition duration-200 mb-3">Upgrade Plan</button>
+                <button class="text-gray-600" onclick="closeModal('limitReachedModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resume Match Results Modal -->
+    <div id="matchResultsModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-full max-w-4xl shadow-lg rounded-md bg-white">
+            <div class="flex flex-col">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold">Match Results</h3>
+                    <button onclick="closeModal('matchResultsModal')" class="text-gray-500 hover:text-gray-700">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                <div class="mb-6">
+                    <h4 class="text-lg font-semibold mb-2" id="matchJobTitle">Senior Software Engineer</h4>
+                    <div class="bg-gray-50 p-3 rounded-lg text-sm text-gray-600 max-h-32 overflow-y-auto" id="matchJobDescription">
+                        <!-- Job description will be inserted here -->
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <h4 class="text-lg font-semibold">Top Matches</h4>
+                        <div class="text-sm text-gray-500" id="matchResultsCount">10 matches found</div>
+                    </div>
+                    <div class="border rounded-lg overflow-hidden">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Match Score</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Key Skills</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Experience</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200" id="matchResultsTable">
+                                <!-- Match results will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center mt-4">
+                    <button class="text-blue-600 hover:text-blue-800 flex items-center">
+                        <i class="bi bi-download mr-1"></i> Export Results
+                    </button>
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200" id="viewAllMatchesBtn">
+                        View All Candidates
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase configuration and initialization
+        const firebaseConfig = {
+            apiKey: "AIzaSyDVebA8q3DbGOhO0_i4OlocVhKwS7WCwts",
+            authDomain: "airesumeiq.firebaseapp.com",
+            projectId: "airesumeiq",
+            storageBucket: "airesumeiq.firebasestorage.app",
+            messagingSenderId: "57735183426",
+            appId: "1:57735183426:web:4d5861f3ce8068569d01db",
+            measurementId: "G-43NXCT38ME"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        let currentUser = null;
+        let currentPlan = '';
+        let currentBillingCycle = 'weekly';
+
+        // Mock data for demo functionality
+        let mockCandidates = [];
+        let processedResumeCount = 0;
+        let matchedCandidatesCount = 0;
+
+        // UI Elements
+        const mainContent = document.getElementById('mainContent');
+        const dashboardContent = document.getElementById('dashboardContent');
+        const profileContent = document.getElementById('profileContent');
+        const settingsContent = document.getElementById('settingsContent');
+        const subscriptionContent = document.getElementById('subscriptionContent');
+        const analyticsSection = document.getElementById('analyticsSection');
+        const candidatePoolSection = document.getElementById('candidatePoolSection');
+        const authButtons = document.getElementById('authButtons');
+        const profileSection = document.getElementById('profileSection');
+        const mobileAuthButtons = document.getElementById('mobileAuthButtons');
+        const mobileProfileSection = document.getElementById('mobileProfileSection');
+        const uploadSection = document.getElementById('uploadSection');
+
+        // Mobile menu toggle
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+            const mobileMenu = document.getElementById('mobileMenu');
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Pricing plan toggle
+        document.getElementById('weeklyToggle').addEventListener('click', function() {
+            togglePricingView('weekly');
+        });
+        document.getElementById('monthlyToggle').addEventListener('click', function() {
+            togglePricingView('monthly');
+        });
+        document.getElementById('yearlyToggle').addEventListener('click', function() {
+            togglePricingView('yearly');
+        });
+
+        // Upgrade plan toggle
+        document.getElementById('upgradeWeeklyToggle').addEventListener('click', function() {
+            toggleUpgradeView('weekly');
+        });
+        document.getElementById('upgradeMonthlyToggle').addEventListener('click', function() {
+            toggleUpgradeView('monthly');
+        });
+        document.getElementById('upgradeYearlyToggle').addEventListener('click', function() {
+            toggleUpgradeView('yearly');
+        });
+
+        function togglePricingView(period) {
+            // Update button styles
+            document.getElementById('weeklyToggle').className = 'px-4 py-2 rounded-md text-gray-700 font-medium';
+            document.getElementById('monthlyToggle').className = 'px-4 py-2 rounded-md text-gray-700 font-medium';
+            document.getElementById('yearlyToggle').className = 'px-4 py-2 rounded-md text-gray-700 font-medium';
+            document.getElementById(`${period}Toggle`).className = 'px-4 py-2 rounded-md bg-blue-600 text-white font-medium';
+            
+            // Hide all pricing divs
+            document.getElementById('starterWeekly').classList.add('hidden');
+            document.getElementById('starterMonthly').classList.add('hidden');
+            document.getElementById('starterYearly').classList.add('hidden');
+            document.getElementById('premiumWeekly').classList.add('hidden');
+            document.getElementById('premiumMonthly').classList.add('hidden');
+            document.getElementById('premiumYearly').classList.add('hidden');
+            document.getElementById('enterpriseWeekly').classList.add('hidden');
+            document.getElementById('enterpriseMonthly').classList.add('hidden');
+            document.getElementById('enterpriseYearly').classList.add('hidden');
+            
+            // Show selected period pricing
+            document.getElementById(`starter${period.charAt(0).toUpperCase() + period.slice(1)}`).classList.remove('hidden');
+            document.getElementById(`premium${period.charAt(0).toUpperCase() + period.slice(1)}`).classList.remove('hidden');
+            document.getElementById(`enterprise${period.charAt(0).toUpperCase() + period.slice(1)}`).classList.remove('hidden');
+            
+            currentBillingCycle = period;
+        }
+        
+        function toggleUpgradeView(period) {
+            // Update button styles
+            document.getElementById('upgradeWeeklyToggle').className = 'px-4 py-2 rounded-md text-gray-700 font-medium';
+            document.getElementById('upgradeMonthlyToggle').className = 'px-4 py-2 rounded-md text-gray-700 font-medium';
+            document.getElementById('upgradeYearlyToggle').className = 'px-4 py-2 rounded-md text-gray-700 font-medium';
+            document.getElementById(`upgrade${period.charAt(0).toUpperCase() + period.slice(1)}Toggle`).className = 'px-4 py-2 rounded-md bg-blue-600 text-white font-medium';
+            
+            // Hide all pricing divs
+            document.getElementById('upgradeStarterWeekly').classList.add('hidden');
+            document.getElementById('upgradeStarterMonthly').classList.add('hidden');
+            document.getElementById('upgradeStarterYearly').classList.add('hidden');
+            document.getElementById('upgradePremiumWeekly').classList.add('hidden');
+            document.getElementById('upgradePremiumMonthly').classList.add('hidden');
+            document.getElementById('upgradePremiumYearly').classList.add('hidden');
+            document.getElementById('upgradeEnterpriseWeekly').classList.add('hidden');
+            document.getElementById('upgradeEnterpriseMonthly').classList.add('hidden');
+            document.getElementById('upgradeEnterpriseYearly').classList.add('hidden');
+            
+            // Show selected period pricing
+            document.getElementById(`upgradeStarter${period.charAt(0).toUpperCase() + period.slice(1)}`).classList.remove('hidden');
+            document.getElementById(`upgradePremium${period.charAt(0).toUpperCase() + period.slice(1)}`).classList.remove('hidden');
+            document.getElementById(`upgradeEnterprise${period.charAt(0).toUpperCase() + period.slice(1)}`).classList.remove('hidden');
+            
+            currentBillingCycle = period;
+        }
+
+        // Authentication state change listener
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                currentUser = user;
+                // Update UI for authenticated user
+                authButtons.classList.add('hidden');
+                profileSection.classList.remove('hidden');
+                mobileAuthButtons?.classList.add('hidden');
+                mobileProfileSection?.classList.remove('hidden');
+                uploadSection.classList.remove('hidden');
+
+                // Set user information
+                const userInitials = getUserInitials(user.displayName || user.email);
+                document.getElementById('userInitials').textContent = userInitials;
+                document.getElementById('mobileUserInitials').textContent = userInitials;
+                document.getElementById('userName').textContent = user.displayName || user.email.split('@')[0];
+                document.getElementById('mobileUserName').textContent = user.displayName || user.email.split('@')[0];
+                document.getElementById('mobileUserEmail').textContent = user.email;
+
+                // Also update profile page
+                document.getElementById('profileInitials').textContent = userInitials;
+                document.getElementById('profileName').textContent = user.displayName || user.email.split('@')[0];
+                document.getElementById('profileEmail').textContent = user.email;
+                document.getElementById('profileEmailInput').value = user.email;
+                
+                // Load user data from Firestore if needed
+                loadUserData(user.uid);
+            } else {
+                currentUser = null;
+                // Update UI for non-authenticated user
+                authButtons.classList.remove('hidden');
+                profileSection.classList.add('hidden');
+                mobileAuthButtons?.classList.remove('hidden');
+                mobileProfileSection?.classList.add('hidden');
+                uploadSection.classList.add('hidden');
+                
+                // Show main content
+                showContent('main');
+            }
+        });
+
+        // Modal handling
+        document.getElementById('loginBtn').addEventListener('click', () => {
+            document.getElementById('loginModal').classList.remove('hidden');
+        });
+
+        document.getElementById('mobileLoginBtn')?.addEventListener('click', () => {
+            document.getElementById('loginModal').classList.remove('hidden');
+            document.getElementById('mobileMenu').classList.add('hidden');
+        });
+
+        document.getElementById('signupBtn').addEventListener('click', () => {
+            document.getElementById('signupModal').classList.remove('hidden');
+        });
+
+        document.getElementById('mobileSignupBtn')?.addEventListener('click', () => {
+            document.getElementById('signupModal').classList.remove('hidden');
+            document.getElementById('mobileMenu').classList.add('hidden');
+        });
+
+        document.getElementById('tryFreeBtn').addEventListener('click', () => {
+            if (currentUser) {
+                // If already logged in, redirect to dashboard
+                showContent('dashboard');
+            } else {
+                document.getElementById('freeTrialModal').classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('switchToSignup').addEventListener('click', () => {
+            closeModal('loginModal');
+            document.getElementById('signupModal').classList.remove('hidden');
+        });
+
+        document.getElementById('switchToLogin').addEventListener('click', () => {
+            closeModal('signupModal');
+            document.getElementById('loginModal').classList.remove('hidden');
+        });
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+            // Clear any error messages
+            const errorElement = document.getElementById(`${modalId.replace('Modal', '')}Error`);
+            if (errorElement) {
+                errorElement.classList.add('hidden');
+                errorElement.textContent = '';
+            }
+        }
+
+        // Profile dropdown toggle
+        const profileBtn = document.getElementById('profileBtn');
+        if (profileBtn) {
+            profileBtn.addEventListener('click', () => {
+                const dropdown = document.getElementById('dropdownMenu');
+                dropdown.classList.toggle('hidden');
+            });
+        }
+
+        // Close dropdown when clicking outside
+        window.addEventListener('click', (event) => {
+            const dropdown = document.getElementById('dropdownMenu');
+            const profileBtn = document.getElementById('profileBtn');
+            if (dropdown && !dropdown.classList.contains('hidden') && 
+                profileBtn && !profileBtn.contains(event.target) && 
+                !dropdown.contains(event.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        // Dashboard navigation
+        document.getElementById('dashboardLink').addEventListener('click', (e) => {
+            e.preventDefault();
+            showContent('dashboard');
+        });
+
+        document.getElementById('mobileDashboardLink').addEventListener('click', (e) => {
+            e.preventDefault();
+            showContent('dashboard');
+            document.getElementById('mobileMenu').classList.add('hidden');
+        });
+
+        document.getElementById('profileLink').addEventListener('click', (e) => {
+            e.preventDefault();
+            showContent('profile');
+        });
+
+        document.getElementById('mobileProfileLink').addEventListener('click', (e) => {
+            e.preventDefault();
+            showContent('profile');
+            document.getElementById('mobileMenu').classList.add('hidden');
+        });
+
+        document.getElementById('settingsLink').addEventListener('click', (e) => {
+            e.preventDefault();
+            showContent('settings');
+        });
+
+        document.getElementById('mobileSettingsLink').addEventListener('click', (e) => {
+            e.preventDefault();
+            showContent('settings');
+            document.getElementById('mobileMenu').classList.add('hidden');
+        });
+
+        document.getElementById('subscriptionLink').addEventListener('click', (e) => {
+            e.preventDefault();
+            showContent('subscription');
+        });
+
+        document.getElementById('mobileSubscriptionLink').addEventListener('click', (e) => {
+            e.preventDefault();
+            showContent('subscription');
+            document.getElementById('mobileMenu').classList.add('hidden');
+        });
+
+        // Dashboard section navigation
+        document.getElementById('viewAnalyticsBtn').addEventListener('click', () => {
+            showDashboardSection('analytics');
+        });
+
+        document.getElementById('backToDashboardBtn').addEventListener('click', () => {
+            showDashboardSection('main');
+        });
+
+        document.getElementById('viewCandidatesBtn').addEventListener('click', () => {
+            showDashboardSection('candidates');
+        });
+
+        document.getElementById('backFromPoolBtn').addEventListener('click', () => {
+            showDashboardSection('main');
+        });
+
+        document.getElementById('createJobBtn').addEventListener('click', () => {
+            // Scroll to Job Description section
+            const jobDescriptionSection = document.querySelector('.dashboard-main .bg-white:nth-child(2)');
+            jobDescriptionSection?.scrollIntoView({ behavior: 'smooth' });
+        });
+
+        document.getElementById('viewAllMatchesBtn')?.addEventListener('click', () => {
+            closeModal('matchResultsModal');
+            showDashboardSection('candidates');
+        });
+
+        function showDashboardSection(section) {
+            // Hide all dashboard sections
+            document.getElementById('analyticsSection').classList.add('hidden');
+            document.getElementById('candidatePoolSection').classList.add('hidden');
+            
+            // Show the requested section
+            switch(section) {
+                case 'analytics':
+                    document.getElementById('analyticsSection').classList.remove('hidden');
+                    break;
+                case 'candidates':
+                    document.getElementById('candidatePoolSection').classList.remove('hidden');
+                    break;
+                default:
+                    // Main dashboard is already visible by default
+                    break;
+            }
+        }
+
+        // Limit reached handling
+        document.getElementById('upgradeLimitBtn').addEventListener('click', () => {
+            closeModal('limitReachedModal');
+            document.getElementById('upgradePlanModal').classList.remove('hidden');
+        });
+
+        // Match resumes button
+        document.getElementById('matchResumesBtn').addEventListener('click', () => {
+            const jobTitle = document.getElementById('jobTitle').value;
+            const jobDescription = document.getElementById('jobDescription').value;
+            
+            if (!jobTitle || !jobDescription) {
+                alert('Please enter both job title and description');
+                return;
+            }
+            
+            // Execute match process
+            matchResumesToJob(jobTitle, jobDescription);
+        });
+
+        function matchResumesToJob(title, description) {
+            // Display loading
+            const loadingMsg = document.createElement('div');
+            loadingMsg.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50';
+            loadingMsg.innerHTML = `
+                <div class="bg-white p-5 rounded-lg shadow-lg">
+                    <div class="flex items-center space-x-4">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                        <div>Matching resumes to job description...</div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(loadingMsg);
+            
+            // Simulate processing time
+            setTimeout(() => {
+                document.body.removeChild(loadingMsg);
+                
+                // Get mock match results
+                const matchResults = generateMatchResults(title, description);
+                
+                // Update matched candidates count
+                matchedCandidatesCount = matchResults.length;
+                document.getElementById('matchedCandidatesCount').textContent = matchedCandidatesCount;
+                
+                // Display match results modal
+                showMatchResults(title, description, matchResults);
+                
+                // Add to activity list
+                updateActivityList(`Matched resumes to "${title}" job`, 'match');
+                
+                // Show matched candidates section 
+                document.getElementById('matchedCandidates').classList.remove('hidden');
+                
+                // Populate candidates list
+                populateCandidatesList(matchResults);
+            }, 2000);
+        }
+
+        function showMatchResults(title, description, results) {
+            const modal = document.getElementById('matchResultsModal');
+            document.getElementById('matchJobTitle').textContent = title;
+            document.getElementById('matchJobDescription').textContent = description;
+            document.getElementById('matchResultsCount').textContent = `${results.length} matches found`;
+            
+            // Populate results table
+            const tableBody = document.getElementById('matchResultsTable');
+            tableBody.innerHTML = '';
+            
+            results.slice(0, 5).forEach(result => {
+                tableBody.innerHTML += `
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-medium">
+                                    ${getUserInitials(result.name)}
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900">${result.name}</div>
+                                    <div class="text-sm text-gray-500">${result.email}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900 font-medium">${result.matchScore}%</div>
+                            <div class="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                                <div class="bg-${result.matchScore > 80 ? 'green' : result.matchScore > 60 ? 'blue' : 'yellow'}-500 h-1.5 rounded-full" style="width: ${result.matchScore}%"></div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex flex-wrap gap-1">
+                                ${result.skills.slice(0, 3).map(skill => 
+                                    `<span class="px-2 py-1 text-xs rounded-full bg-blue-50 text-blue-700">${skill}</span>`
+                                ).join('')}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            ${result.experience} years
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <a href="#" class="text-blue-600 hover:text-blue-900">View</a>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            modal.classList.remove('hidden');
+        }
+
+        function populateCandidatesList(candidates) {
+            const candidatesList = document.getElementById('candidatesList');
+            candidatesList.innerHTML = '';
+            
+            candidates.forEach((candidate, index) => {
+                candidatesList.innerHTML += `
+                    <div class="py-4 border-b border-gray-100 ${index === 0 ? 'border-t' : ''}">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-4">
+                                    ${getUserInitials(candidate.name)}
+                                </div>
+                                <div>
+                                    <h4 class="font-medium">${candidate.name}</h4>
+                                    <p class="text-sm text-gray-500">${candidate.email}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="mr-8 text-center">
+                                    <p class="text-sm text-gray-500">Match Score</p>
+                                    <p class="text-lg font-semibold text-${candidate.matchScore > 80 ? 'green' : candidate.matchScore > 60 ? 'blue' : 'yellow'}-600">${candidate.matchScore}%</p>
+                                </div>
+                                <button class="text-blue-600 hover:text-blue-800">View Resume</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function generateMatchResults(jobTitle, jobDescription) {
+            // If we have no candidates yet, create some mock data
+            if (mockCandidates.length === 0) {
+                createMockCandidates();
+            }
+            
+            // Analyze job description for key terms
+            const keyTerms = extractKeyTerms(jobDescription.toLowerCase());
+            
+            // Score each candidate
+            mockCandidates.forEach(candidate => {
+                let score = 0;
+                const candidateSkills = candidate.skills.map(s => s.toLowerCase());
+                
+                // Check how many key terms match with candidate skills
+                keyTerms.forEach(term => {
+                    if (candidateSkills.some(skill => skill.includes(term) || term.includes(skill))) {
+                        score += Math.floor(Math.random() * 10) + 5; // Add 5-15 points for matching skill
+                    }
+                });
+                
+                // Add points for experience
+                score += Math.min(30, candidate.experience * 3);
+                
+                // Ensure score is between 40-98%
+                candidate.matchScore = Math.max(40, Math.min(98, score));
+            });
+            
+            // Sort by match score
+            return [...mockCandidates].sort((a, b) => b.matchScore - a.matchScore);
+        }
+
+        function extractKeyTerms(description) {
+            // Simple extraction of potential key terms
+            const commonWords = ['and', 'the', 'for', 'with', 'are', 'that', 'have'];
+            
+            return description
+                .replace(/[^\w\s]/g, '')
+                .split(/\s+/)
+                .filter(word => word.length > 3 && !commonWords.includes(word))
+                .slice(0, 20); // Take top 20 potential key terms
+        }
+
+        function createMockCandidates() {
+            const skills = [
+                'JavaScript', 'React', 'Node.js', 'Python', 'Java', 'C#', 'SQL',
+                'Data Analysis', 'Machine Learning', 'Project Management',
+                'UI Design', 'UX Research', 'DevOps', 'AWS', 'Azure',
+                'Communication', 'Leadership', 'Problem Solving', 'Team Management',
+                'Agile', 'Scrum', 'Product Management', 'Content Strategy',
+                'SEO', 'Digital Marketing', 'Sales', 'Customer Service',
+                'HR Management', 'Financial Analysis', 'Accounting'
+            ];
+            
+            const firstNames = ['James', 'Mary', 'Robert', 'Patricia', 'John', 'Jennifer', 'Michael', 'Linda', 'William', 'Elizabeth', 'David', 'Susan', 'Richard', 'Jessica', 'Joseph', 'Sarah', 'Thomas', 'Karen'];
+            
+            const lastNames = ['Smith', 'Johnson', 'Williams', 'Jones', 'Brown', 'Davis', 'Miller', 'Wilson', 'Moore', 'Taylor', 'Anderson', 'Thomas', 'Jackson', 'White', 'Harris', 'Martin'];
+            
+            // Create 25 mock candidates
+            for (let i = 0; i < 25; i++) {
+                const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+                const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+                
+                // Randomly select 4-8 skills
+                const candidateSkills = [];
+                const skillCount = Math.floor(Math.random() * 5) + 4;
+                
+                for (let j = 0; j < skillCount; j++) {
+                    const skill = skills[Math.floor(Math.random() * skills.length)];
+                    if (!candidateSkills.includes(skill)) {
+                        candidateSkills.push(skill);
+                    }
+                }
+                
+                mockCandidates.push({
+                    id: `candidate-${i + 1}`,
+                    name: `${firstName} ${lastName}`,
+                    email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`,
+                    skills: candidateSkills,
+                    experience: Math.floor(Math.random() * 15) + 1, // 1-15 years
+                    matchScore: 0 // Will be calculated when matching to a job
+                });
+            }
+        }
+
+        function updateActivityList(activityText, type = 'upload') {
+            // Show activity list and hide no activity message
+            document.getElementById('noActivityMessage').classList.add('hidden');
+            const activityList = document.getElementById('activityList');
+            activityList.classList.remove('hidden');
+            
+            // Add activity item at the beginning
+            const timestamp = new Date().toLocaleString();
+            const iconClass = type === 'upload' 
+                ? 'bi-file-earmark-check text-green-600' 
+                : 'bi-search text-blue-600';
+            
+            const activityHTML = `
+                <div class="py-3 border-b border-gray-100 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="h-10 w-10 rounded-full bg-${type === 'upload' ? 'green' : 'blue'}-100 flex items-center justify-center mr-4">
+                            <i class="bi ${iconClass}"></i>
+                        </div>
+                        <div>
+                            <p class="font-medium">${activityText}</p>
+                            <p class="text-sm text-gray-500">Successfully completed</p>
+                        </div>
+                    </div>
+                    <div class="text-sm text-gray-500">${timestamp}</div>
+                </div>
+            `;
+            
+            activityList.innerHTML = activityHTML + activityList.innerHTML;
+        }
+
+        // Show specific content based on navigation
+        function showContent(contentType) {
+            // Hide all content first
+            mainContent.classList.add('hidden');
+            dashboardContent.classList.add('hidden');
+            profileContent.classList.add('hidden');
+            settingsContent.classList.add('hidden');
+            subscriptionContent.classList.add('hidden');
+            analyticsSection.classList.add('hidden');
+            candidatePoolSection.classList.add('hidden');
+
+            // Show the requested content
+            switch(contentType) {
+                case 'dashboard':
+                    dashboardContent.classList.remove('hidden');
+                    break;
+                case 'profile':
+                    profileContent.classList.remove('hidden');
+                    break;
+                case 'settings':
+                    settingsContent.classList.remove('hidden');
+                    break;
+                case 'subscription':
+                    subscriptionContent.classList.remove('hidden');
+                    break;
+                default:
+                    mainContent.classList.remove('hidden');
+                    break;
+            }
+
+            // Close mobile menu if open
+            document.getElementById('mobileMenu').classList.add('hidden');
+            document.getElementById('dropdownMenu').classList.add('hidden');
+
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        // Auth functions
+        function signupWithEmail(email, password, name) {
+            const signupError = document.getElementById('signupError');
+            signupError.classList.add('hidden');
+            
+            auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Set display name
+                    return userCredential.user.updateProfile({
+                        displayName: name
+                    }).then(() => {
+                        // Create user document in Firestore
+                        return db.collection('users').doc(userCredential.user.uid).set({
+                            name: name,
+                            email: email,
+                            plan: 'free_trial',
+                            createdAt: new Date(),
+                            resumes_remaining: 30,
+                            trial_end_date: new Date(new Date().setDate(new Date().getDate() + 14)) // 14 days from now
+                        });
+                    }).then(() => {
+                        closeModal('signupModal');
+                        showContent('dashboard');
+                    });
+                })
+                .catch((error) => {
+                    signupError.textContent = error.message;
+                    signupError.classList.remove('hidden');
+                });
+        }
+
+        function loginWithEmail(email, password) {
+            const loginError = document.getElementById('loginError');
+            loginError.classList.add('hidden');
+            
+            auth.signInWithEmailAndPassword(email, password)
+                .then(() => {
+                    closeModal('loginModal');
+                    showContent('dashboard');
+                })
+                .catch((error) => {
+                    loginError.textContent = error.message;
+                    loginError.classList.remove('hidden');
+                });
+        }
+
+        function startFreeTrial(name, email, password) {
+            const trialError = document.getElementById('trialError');
+            trialError.classList.add('hidden');
+            
+            auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Set display name
+                    return userCredential.user.updateProfile({
+                        displayName: name
+                    }).then(() => {
+                        // Create user document in Firestore
+                        return db.collection('users').doc(userCredential.user.uid).set({
+                            name: name,
+                            email: email,
+                            plan: 'free_trial',
+                            createdAt: new Date(),
+                            resumes_remaining: 30,
+                            trial_end_date: new Date(new Date().setDate(new Date().getDate() + 14)) // 14 days from now
+                        });
+                    }).then(() => {
+                        closeModal('freeTrialModal');
+                        showContent('dashboard');
+                    });
+                })
+                .catch((error) => {
+                    trialError.textContent = error.message;
+                    trialError.classList.remove('hidden');
+                });
+        }
+
+        // Google Authentication
+        function signInWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider)
+                .then((result) => {
+                    const user = result.user;
+                    // Check if user exists in database
+                    db.collection('users').doc(user.uid).get()
+                        .then((doc) => {
+                            if (!doc.exists) {
+                                // New user - set up free trial
+                                return db.collection('users').doc(user.uid).set({
+                                    name: user.displayName,
+                                    email: user.email,
+                                    plan: 'free_trial',
+                                    createdAt: new Date(),
+                                    resumes_remaining: 30,
+                                    trial_end_date: new Date(new Date().setDate(new Date().getDate() + 14)) // 14 days from now
+                                });
+                            }
+                        })
+                        .then(() => {
+                            closeModal('loginModal');
+                            closeModal('signupModal');
+                            showContent('dashboard');
+                        });
+                })
+                .catch((error) => {
+                    console.error("Google sign in error:", error);
+                    alert("Error signing in with Google: " + error.message);
+                });
+        }
+
+        // Logout handling
+        function logout() {
+            auth.signOut()
+                .then(() => {
+                    window.location.href = '/'; // Redirect to home
+                })
+                .catch((error) => {
+                    console.error("Logout error:", error);
+                });
+        }
+
+        // Subscription handling
+        let stripe = Stripe('pk_test_51LQngxKq7RyD0T16U8QQNFGrLuELnc8ckzRahYZnVV5JsDGxgCZF60CXq8AJcuJjAeGzPxhySDUPqvfR8EKzOjwb00WBXl91E9');
+        let elements = stripe.elements();
+
+        // Custom styling for the card element
+        const style = {
+            base: {
+                color: '#32325d',
+                fontFamily: '"Inter", Helvetica, sans-serif',
+                fontSmoothing: 'antialiased',
+                fontSize: '16px',
+                '::placeholder': {
+                    color: '#aab7c4'
+                }
+            },
+            invalid: {
+                color: '#fa755a',
+                iconColor: '#fa755a'
+            }
+        };
+
+        // Create an instance of the card Element
+        const cardElement = elements.create('card', {style: style});
+
+        // Add an instance of the card Element into the `card-element` div
+        cardElement.mount('#card-element');
+
+        // Handle real-time validation errors from the card Element
+        cardElement.on('change', function(event) {
+            const displayError = document.getElementById('card-errors');
+            if (event.error) {
+                displayError.textContent = event.error.message;
+            } else {
+                displayError.textContent = '';
+            }
+        });
+
+        // Handle form submission for payment
+        async function handleSubscription(plan) {
+            currentPlan = plan;
+            
+            if (!currentUser) {
+                // User not logged in, show sign up modal first
+                document.getElementById('signupModal').classList.remove('hidden');
+                return;
+            }
+            
+            // Set plan details in payment modal
+            let planText = '';
+            let planPrice = '';
+            
+            if (plan === 'starter') {
+                planText = 'Starter';
+                planPrice = currentBillingCycle === 'weekly' ? '$2/week' : 
+                            currentBillingCycle === 'monthly' ? '$8/month' : '$80/year';
+            } else if (plan === 'premium') {
+                planText = 'Premium';
+                planPrice = currentBillingCycle === 'weekly' ? '$5/week' : 
+                            currentBillingCycle === 'monthly' ? '$20/month' : '$200/year';
+            } else if (plan === 'enterprise') {
+                planText = 'Enterprise';
+                planPrice = currentBillingCycle === 'weekly' ? '$8/week' : 
+                            currentBillingCycle === 'monthly' ? '$32/month' : '$320/year';
+            }
+            
+            document.getElementById('planDetails').textContent = `You are subscribing to the ${planText} Plan at ${planPrice}.`;
+            
+            // Set the selected billing cycle radio button
+            const billingCycleRadios = document.getElementsByName('billingCycle');
+            for (let i = 0; i < billingCycleRadios.length; i++) {
+                if (billingCycleRadios[i].value === currentBillingCycle) {
+                    billingCycleRadios[i].checked = true;
+                    break;
+                }
+            }
+            
+            document.getElementById('paymentModal').classList.remove('hidden');
+        }
+
+        function selectUpgradePlan(plan) {
+            closeModal('upgradePlanModal');
+            handleSubscription(plan);
+        }
+
+        // Process payment (in a real app, this would call your backend)
+        document.getElementById('completePaymentBtn').addEventListener('click', function() {
+            const loadingMsg = document.createElement('div');
+            loadingMsg.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50';
+            loadingMsg.innerHTML = `
+                <div class="bg-white p-5 rounded-lg shadow-lg">
+                    <div class="flex items-center space-x-4">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                        <div>Processing payment...</div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(loadingMsg);
+            
+            // Get selected billing cycle
+            const billingCycleRadios = document.getElementsByName('billingCycle');
+            for (let i = 0; i < billingCycleRadios.length; i++) {
+                if (billingCycleRadios[i].checked) {
+                    currentBillingCycle = billingCycleRadios[i].value;
+                    break;
+                }
+            }
+            
+            setTimeout(() => {
+                document.body.removeChild(loadingMsg);
+                closeModal('paymentModal');
+                
+                // Update user subscription in database
+                if (currentUser) {
+                    // Calculate the appropriate resume count based on plan and billing cycle
+                    let resumeCount = 0;
+                    let expiryDate = null;
+                    const today = new Date();
+                    
+                    if (currentPlan === 'starter') {
+                        resumeCount = 50;
+                    } else if (currentPlan === 'premium') {
+                        resumeCount = 100;
+                    } else if (currentPlan === 'enterprise') {
+                        resumeCount = 500;
+                    }
+                    
+                    // Adjust for billing cycle
+                    if (currentBillingCycle === 'monthly') {
+                        resumeCount *= 4; // Approximate weeks in a month
+                        expiryDate = new Date(today.setMonth(today.getMonth() + 1));
+                    } else if (currentBillingCycle === 'yearly') {
+                        resumeCount *= 52; // Weeks in a year
+                        expiryDate = new Date(today.setFullYear(today.getFullYear() + 1));
+                    } else {
+                        expiryDate = new Date(today.setDate(today.getDate() + 7)); // One week from now
+                    }
+                    
+                    db.collection('users').doc(currentUser.uid).update({
+                        plan: currentPlan,
+                        billing_cycle: currentBillingCycle,
+                        subscription_date: new Date(),
+                        resumes_remaining: resumeCount,
+                        trial_end_date: null,
+                        subscription_end_date: expiryDate
+                    }).then(() => {
+                        alert(`Thank you for subscribing to the ${currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)} plan! Your subscription is now active.`);
+                        updateSubscriptionDisplay(currentPlan, resumeCount, expiryDate);
+                        showContent('dashboard');
+                    }).catch(err => {
+                        console.error("Error updating subscription: ", err);
+                    });
+                }
+            }, 2000);
+        });
+
+        // File upload handling
+        const fileInputs = document.querySelectorAll('input[type="file"]');
+        fileInputs.forEach(input => {
+            input.addEventListener('change', async (e) => {
+                const files = Array.from(e.target.files);
+                
+                if (files.length === 0) return;
+                
+                // First check if user is over their limit
+                if (currentUser) {
+                    const userDoc = await db.collection('users').doc(currentUser.uid).get();
+                    if (userDoc.exists) {
+                        const userData = userDoc.data();
+                        if (userData.resumes_remaining < files.length) {
+                            document.getElementById('limitReachedModal').classList.remove('hidden');
+                            return;
+                        }
+                    }
+                }
+                
+                // Display loading message
+                const loadingMsg = document.createElement('div');
+                loadingMsg.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50';
+                loadingMsg.innerHTML = `
+                    <div class="bg-white p-5 rounded-lg shadow-lg">
+                        <div class="flex items-center space-x-4">
+                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                            <div>Uploading and analyzing ${files.length} resumes...</div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(loadingMsg);
+                
+                // Simulate processing time
+                setTimeout(() => {
+                    document.body.removeChild(loadingMsg);
+                    
+                    // Update resumes remaining in database (if authenticated)
+                    if (currentUser) {
+                        db.collection('users').doc(currentUser.uid).get()
+                            .then((doc) => {
+                                if (doc.exists) {
+                                    const userData = doc.data();
+                                    const remaining = Math.max(0, userData.resumes_remaining - files.length);
+                                    return db.collection('users').doc(currentUser.uid).update({
+                                        resumes_remaining: remaining
+                                    }).then(() => {
+                                        updateRemainingCredits(remaining);
+                                        
+                                        // Update processed resume count
+                                        processedResumeCount += files.length;
+                                        document.getElementById('processedResumesCount').textContent = processedResumeCount;
+                                        
+                                        // Add candidates to mock data
+                                        addFilesToCandidatePool(files);
+                                    });
+                                }
+                            })
+                            .catch(err => {
+                                console.error("Error updating resume count: ", err);
+                            });
+                    } else {
+                        // For non-authenticated users, just update the UI
+                        processedResumeCount += files.length;
+                        document.getElementById('processedResumesCount').textContent = processedResumeCount;
+                        
+                        // Add candidates to mock data
+                        addFilesToCandidatePool(files);
+                    }
+                    
+                    alert(`Successfully uploaded and analyzed ${files.length} resumes! Results are available in your dashboard.`);
+                    
+                    // Update activity list
+                    updateActivityList(`Processed ${files.length} new resumes`, 'upload');
+                    
+                    // If uploaded from main screen, go to dashboard
+                    if (!dashboardContent.classList.contains('hidden')) {
+                        // Show activity and refresh candidate pool if open
+                        document.getElementById('noActivityMessage').classList.add('hidden');
+                        document.getElementById('activityList').classList.remove('hidden');
+                    } else {
+                        showContent('dashboard');
+                    }
+                    
+                    // Update candidate pool if it's visible
+                    if (document.getElementById('candidatePoolEmpty') && !document.getElementById('candidatePoolEmpty').classList.contains('hidden')) {
+                        document.getElementById('candidatePoolEmpty').classList.add('hidden');
+                        document.getElementById('candidatePoolGrid').classList.remove('hidden');
+                        populateCandidatePool();
+                    }
+                }, 2000);
+            });
+        });
+
+        function addFilesToCandidatePool(files) {
+            if (mockCandidates.length === 0) {
+                createMockCandidates();
+            }
+            
+            // Since we're just simulating, we'll use the file names for some mock data
+            files.forEach(file => {
+                const fileName = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
+                const parts = fileName.split(/[_\-\s]+/);
+                
+                if (parts.length >= 2) {
+                    // Try to extract a name from filename
+                    const firstName = parts[0].charAt(0).toUpperCase() + parts[0].slice(1).toLowerCase();
+                    const lastName = parts[1].charAt(0).toUpperCase() + parts[1].slice(1).toLowerCase();
+                    
+                    // Generate random skills (4-8)
+                    const allSkills = [
+                        'JavaScript', 'React', 'Node.js', 'Python', 'Java', 'C#', 'SQL',
+                        'Data Analysis', 'Machine Learning', 'Project Management',
+                        'UI Design', 'UX Research', 'DevOps', 'AWS', 'Azure',
+                        'Communication', 'Leadership', 'Problem Solving', 'Team Management',
+                        'Agile', 'Scrum', 'Product Management', 'Content Strategy',
+                        'SEO', 'Digital Marketing', 'Sales', 'Customer Service',
+                        'HR Management', 'Financial Analysis', 'Accounting'
+                    ];
+                    
+                    const candidateSkills = [];
+                    const skillCount = Math.floor(Math.random() * 5) + 4;
+                    
+                    for (let i = 0; i < skillCount; i++) {
+                        const skill = allSkills[Math.floor(Math.random() * allSkills.length)];
+                        if (!candidateSkills.includes(skill)) {
+                            candidateSkills.push(skill);
+                        }
+                    }
+                    
+                    mockCandidates.push({
+                        id: `upload-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                        name: `${firstName} ${lastName}`,
+                        email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`,
+                        skills: candidateSkills,
+                        experience: Math.floor(Math.random() * 15) + 1, // 1-15 years
+                        matchScore: 0,
+                        recentlyAdded: true
+                    });
+                }
+            });
+            
+            // Update candidate pool UI if needed
+            populateCandidatePool();
+        }
+
+        function populateCandidatePool() {
+            const candidatePoolGrid = document.getElementById('candidatePoolGrid');
+            if (!candidatePoolGrid) return;
+            
+            // Clear existing content
+            candidatePoolGrid.innerHTML = '';
+            
+            // Sort candidates to show recently added first
+            const sortedCandidates = [...mockCandidates].sort((a, b) => {
+                if (a.recentlyAdded && !b.recentlyAdded) return -1;
+                if (!a.recentlyAdded && b.recentlyAdded) return 1;
+                return 0;
+            });
+            
+            // Add candidates to grid
+            sortedCandidates.forEach(candidate => {
+                candidatePoolGrid.innerHTML += `
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden ${candidate.recentlyAdded ? 'ring-2 ring-blue-500' : ''}">
+                        <div class="p-6">
+                            <div class="flex items-center mb-4">
+                                <div class="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-4">
+                                    ${getUserInitials(candidate.name)}
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-lg">${candidate.name}</h3>
+                                    <p class="text-gray-500">${candidate.email}</p>
+                                </div>
+                                ${candidate.recentlyAdded ? '<span class="ml-auto px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">New</span>' : ''}
+                            </div>
+                            <div class="mb-4">
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm text-gray-500">Experience</span>
+                                    <span class="text-sm font-medium">${candidate.experience} years</span>
+                                </div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm text-gray-500">Skills</span>
+                                    <span class="text-sm font-medium">${candidate.skills.length} skills</span>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap gap-1 mb-4">
+                                ${candidate.skills.slice(0, 5).map(skill => 
+                                    `<span class="px-2 py-1 text-xs rounded-full bg-blue-50 text-blue-700">${skill}</span>`
+                                ).join('')}
+                                ${candidate.skills.length > 5 ? `<span class="px-2 py-1 text-xs rounded-full bg-gray-50 text-gray-700">+${candidate.skills.length - 5} more</span>` : ''}
+                            </div>
+                            <div class="flex justify-between">
+                                <button class="text-blue-600 hover:text-blue-800 text-sm">View Details</button>
+                                <button class="text-gray-500 hover:text-gray-700 text-sm">
+                                    <i class="bi bi-bookmark"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            // Update UI to show the grid
+            if (document.getElementById('candidatePoolEmpty')) {
+                document.getElementById('candidatePoolEmpty').classList.add('hidden');
+            }
+            candidatePoolGrid.classList.remove('hidden');
+        }
+
+        // Handle profile and password updates
+        document.getElementById('profileForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            const companyName = document.getElementById('companyName').value;
+            const jobTitle = document.getElementById('jobTitle').value;
+            
+            if (currentUser) {
+                // Update user profile in Firestore
+                db.collection('users').doc(currentUser.uid).update({
+                    firstName: firstName,
+                    lastName: lastName,
+                    phoneNumber: phoneNumber,
+                    companyName: companyName,
+                    jobTitle: jobTitle
+                }).then(() => {
+                    // Update display name in Firebase Auth
+                    const displayName = `${firstName} ${lastName}`.trim();
+                    if (displayName) {
+                        currentUser.updateProfile({
+                            displayName: displayName
+                        }).then(() => {
+                            // Update UI
+                            document.getElementById('userName').textContent = displayName;
+                            document.getElementById('profileName').textContent = displayName;
+                            document.getElementById('userInitials').textContent = getUserInitials(displayName);
+                            document.getElementById('profileInitials').textContent = getUserInitials(displayName);
+                        });
+                    }
+                    
+                    // Show success message
+                    const successMsg = document.getElementById('profileUpdateSuccess');
+                    successMsg.classList.remove('hidden');
+                    setTimeout(() => {
+                        successMsg.classList.add('hidden');
+                    }, 3000);
+                });
+            }
+        });
+
+        document.getElementById('passwordForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (newPassword !== confirmPassword) {
+                const errorMsg = document.getElementById('passwordUpdateError');
+                errorMsg.textContent = "Passwords don't match";
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+            
+            if (currentUser) {
+                // Reauthenticate user
+                const credential = firebase.auth.EmailAuthProvider.credential(
+                    currentUser.email, 
+                    currentPassword
+                );
+                
+                currentUser.reauthenticateWithCredential(credential)
+                    .then(() => {
+                        // Update password
+                        return currentUser.updatePassword(newPassword);
+                    })
+                    .then(() => {
+                        // Success message
+                        document.getElementById('passwordUpdateError').classList.add('hidden');
+                        const successMsg = document.getElementById('passwordUpdateSuccess');
+                        successMsg.classList.remove('hidden');
+                        setTimeout(() => {
+                            successMsg.classList.add('hidden');
+                        }, 3000);
+                        
+                        // Clear password fields
+                        document.getElementById('currentPassword').value = '';
+                        document.getElementById('newPassword').value = '';
+                        document.getElementById('confirmPassword').value = '';
+                    })
+                    .catch((error) => {
+                        const errorMsg = document.getElementById('passwordUpdateError');
+                        errorMsg.textContent = error.message;
+                        errorMsg.classList.remove('hidden');
+                    });
+            }
+        });
+
+        // Event listeners for authentication forms
+        document.getElementById('signupSubmitBtn').addEventListener('click', function() {
+            const name = document.getElementById('signupName').value;
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            const confirmPassword = document.getElementById('signupConfirmPassword').value;
+            
+            if (password !== confirmPassword) {
+                const signupError = document.getElementById('signupError');
+                signupError.textContent = "Passwords do not match";
+                signupError.classList.remove('hidden');
+                return;
+            }
+            
+            signupWithEmail(email, password, name);
+        });
+
+        document.getElementById('loginSubmitBtn').addEventListener('click', function() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            loginWithEmail(email, password);
+        });
+
+        document.getElementById('startTrialBtn').addEventListener('click', function() {
+            const name = document.getElementById('trialName').value;
+            const email = document.getElementById('trialEmail').value;
+            const password = document.getElementById('trialPassword').value;
+            startFreeTrial(name, email, password);
+        });
+
+        document.getElementById('googleLoginBtn').addEventListener('click', signInWithGoogle);
+        document.getElementById('googleSignupBtn').addEventListener('click', signInWithGoogle);
+
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+        document.getElementById('mobileLogoutBtn').addEventListener('click', logout);
+
+        document.getElementById('upgradePlanBtn').addEventListener('click', function() {
+            document.getElementById('upgradePlanModal').classList.remove('hidden');
+        });
+
+        document.getElementById('saveNotificationSettings').addEventListener('click', function() {
+            alert("Notification preferences saved successfully!");
+        });
+
+        // Search candidates functionality
+        document.getElementById('searchCandidatesBtn')?.addEventListener('click', function() {
+            const searchTerm = document.getElementById('candidateSearch').value.toLowerCase();
+            const filterType = document.getElementById('candidateFilter').value;
+            
+            // Filter mock candidates
+            let filteredCandidates = [...mockCandidates];
+            
+            // Apply search term if entered
+            if (searchTerm) {
+                filteredCandidates = filteredCandidates.filter(candidate => 
+                    candidate.name.toLowerCase().includes(searchTerm) ||
+                    candidate.skills.some(skill => skill.toLowerCase().includes(searchTerm)) ||
+                    candidate.email.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            // Apply filter
+            if (filterType === 'recent') {
+                filteredCandidates = filteredCandidates.filter(c => c.recentlyAdded);
+            } else if (filterType === 'highest') {
+                filteredCandidates.sort((a, b) => b.matchScore - a.matchScore);
+            } else if (filterType === 'experience') {
+                filteredCandidates.sort((a, b) => b.experience - a.experience);
+            }
+            
+            // Update UI
+            const candidatePoolGrid = document.getElementById('candidatePoolGrid');
+            candidatePoolGrid.innerHTML = '';
+            
+            if (filteredCandidates.length === 0) {
+                candidatePoolGrid.innerHTML = `
+                    <div class="col-span-full py-16 text-center">
+                        <i class="bi bi-search text-gray-300 text-5xl mb-4 block"></i>
+                        <h3 class="text-xl font-semibold mb-2">No candidates found</h3>
+                        <p class="text-gray-500">Try adjusting your search criteria</p>
+                    </div>
+                `;
+            } else {
+                filteredCandidates.forEach(candidate => {
+                    candidatePoolGrid.innerHTML += `
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden ${candidate.recentlyAdded ? 'ring-2 ring-blue-500' : ''}">
+                            <div class="p-6">
+                                <div class="flex items-center mb-4">
+                                    <div class="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-4">
+                                        ${getUserInitials(candidate.name)}
+                                    </div>
+                                    <div>
+                                        <h3 class="font-semibold text-lg">${candidate.name}</h3>
+                                        <p class="text-gray-500">${candidate.email}</p>
+                                    </div>
+                                    ${candidate.recentlyAdded ? '<span class="ml-auto px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">New</span>' : ''}
+                                </div>
+                                <div class="mb-4">
+                                    <div class="flex justify-between mb-1">
+                                        <span class="text-sm text-gray-500">Experience</span>
+                                        <span class="text-sm font-medium">${candidate.experience} years</span>
+                                    </div>
+                                    ${candidate.matchScore > 0 ? `
+                                        <div class="flex justify-between mb-1">
+                                            <span class="text-sm text-gray-500">Match Score</span>
+                                            <span class="text-sm font-medium text-${candidate.matchScore > 80 ? 'green' : candidate.matchScore > 60 ? 'blue' : 'yellow'}-600">${candidate.matchScore}%</span>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                                <div class="flex flex-wrap gap-1 mb-4">
+                                    ${candidate.skills.slice(0, 5).map(skill => 
+                                        `<span class="px-2 py-1 text-xs rounded-full bg-blue-50 text-blue-700">${skill}</span>`
+                                    ).join('')}
+                                    ${candidate.skills.length > 5 ? `<span class="px-2 py-1 text-xs rounded-full bg-gray-50 text-gray-700">+${candidate.skills.length - 5} more</span>` : ''}
+                                </div>
+                                <div class="flex justify-between">
+                                    <button class="text-blue-600 hover:text-blue-800 text-sm">View Details</button>
+                                    <button class="text-gray-500 hover:text-gray-700 text-sm">
+                                        <i class="bi bi-bookmark"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+        });
+
+        // Helper functions
+        function getUserInitials(name) {
+            if (!name) return "?";
+            const parts = name.split(/[ @]/);
+            if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+            return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+        }
+
+        function loadUserData(userId) {
+            db.collection('users').doc(userId).get()
+                .then((doc) => {
+                    if (doc.exists) {
+                        const userData = doc.data();
+                        
+                        // Populate name fields in profile form
+                        if (userData.firstName) document.getElementById('firstName').value = userData.firstName;
+                        if (userData.lastName) document.getElementById('lastName').value = userData.lastName;
+                        if (userData.phoneNumber) document.getElementById('phoneNumber').value = userData.phoneNumber;
+                        if (userData.companyName) document.getElementById('companyName').value = userData.companyName;
+                        if (userData.jobTitle) document.getElementById('jobTitle').value = userData.jobTitle;
+                        
+                        // Update subscription info
+                        updateSubscriptionDisplay(
+                            userData.plan, 
+                            userData.resumes_remaining || 0,
+                            userData.trial_end_date || userData.subscription_end_date || null
+                        );
+                        
+                        // Update member since date
+                        if (userData.createdAt) {
+                            const createdDate = userData.createdAt.toDate();
+                            document.getElementById('memberSince').textContent = createdDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                        }
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error getting user data:", error);
+                });
+        }
+
+        function updateSubscriptionDisplay(plan, remainingCredits, expiryDate) {
+            // Update plan name and details throughout the UI
+            let planName, planPrice, planDescription, planStatus;
+            
+            switch(plan) {
+                case 'starter':
+                    planName = "Starter";
+                    planPrice = "$2/week";
+                    planDescription = "Includes 50 resumes per week with basic analytics.";
+                    planStatus = "Active";
+                    break;
+                case 'premium':
+                    planName = "Premium";
+                    planPrice = "$5/week";
+                    planDescription = "Includes 100 resumes per week with advanced features.";
+                    planStatus = "Active";
+                    break;
+                case 'enterprise':
+                    planName = "Enterprise";
+                    planPrice = "$8/week";
+                    planDescription = "Includes 500 resumes per week with all premium features.";
+                    planStatus = "Active";
+                    break;
+                default:
+                    planName = "Free Trial";
+                    planPrice = "$0";
+                    planDescription = "Your free trial includes analysis of up to 30 resumes.";
+                    planStatus = "Active";
+            }
+            
+            // Update subscription page
+            document.getElementById('subscriptionPlanName').textContent = planName;
+            document.getElementById('subscriptionDescription').textContent = planDescription;
+            document.getElementById('subscriptionPrice').textContent = planPrice;
+            document.getElementById('subscriptionStatus').textContent = planStatus;
+            document.getElementById('subscriptionPeriod').textContent = plan === 'free_trial' ? 'Free Trial' : 'Weekly';
+            
+            // Update dashboard
+            document.getElementById('currentPlan').textContent = planName;
+            
+            // Update profile page
+            document.getElementById('profilePlan').textContent = planName;
+            
+            // Show/hide upgrade button based on whether they're on free trial
+            document.getElementById('upgradePlanBtn').style.display = plan === 'free_trial' ? 'block' : 'none';
+            
+            // Update remaining credits
+            updateRemainingCredits(remainingCredits);
+            
+            // Update expiry date if provided
+            if (expiryDate) {
+                const expiry = expiryDate.toDate ? expiryDate.toDate() : new Date(expiryDate);
+                document.getElementById('expiryDate').textContent = expiry.toLocaleDateString();
+                
+                // Calculate days remaining
+                const today = new Date();
+                const daysLeft = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
+                
+                if (daysLeft > 0) {
+                    document.getElementById('daysRemaining').textContent = daysLeft;
+                    const percentage = Math.min(100, (daysLeft / 14) * 100); // Assuming 14 day trial
+                    document.getElementById('daysProgressBar').style.width = `${percentage}%`;
+                } else {
+                    document.getElementById('daysRemaining').textContent = "0";
+                    document.getElementById('daysProgressBar').style.width = "0%";
+                }
+            }
+        }
+
+        function updateRemainingCredits(remaining) {
+            // Dashboard counter
+            document.getElementById('remainingCredits').textContent = `${remaining} resumes`;
+            
+            // Subscription page
+            document.getElementById('usedCredits').textContent = remaining;
+            
+            // Update progress bar - assuming 30 is max for free trial
+            const totalCredits = 30;
+            const percentage = Math.min(100, (remaining / totalCredits) * 100);
+            document.getElementById('creditsProgressBar').style.width = `${percentage}%`;
+        }
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const href = this.getAttribute('href');
+                if (href === "#") return; // Skip if just "#"
+                
+                e.preventDefault();
+
+                const target = document.querySelector(href);
+                if (target) {
+                    window.scrollTo({
+                        top: target.offsetTop,
+                        behavior: 'smooth'
+                    });
+                }
+                
+                // Close mobile menu if open
+                const mobileMenu = document.getElementById('mobileMenu');
+                if (!mobileMenu.classList.contains('hidden')) {
+                    mobileMenu.classList.add('hidden');
+                }
+            });
+        });
+    </script>
+<script>document.body.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); return }, { passive: false })</script>
+	</body>
+</html>
